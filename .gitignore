@@ -1,0 +1,14 @@
+node_modules/
+bin/
+obj/
+out/
+dist/
+web/dist-mock/
+server/wwwroot/
+*.db
+*.db-shm
+*.db-wal
+.vs/
+*.user
+release-*/
+*.tsbuildinfo
