@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { api } from '../api'
+import { desktop, dirOf } from '../desktop'
 import type { Tone } from '../format'
 
 // ───── плоские статусы ─────
@@ -30,6 +31,8 @@ const paths: Record<string, ReactNode> = {
   alert: <><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></>,
   stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
   minus: <path d="M5 12h14" />,
+  folder: <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />,
+  external: <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />,
 }
 export function Icon({ name, size }: { name: keyof typeof paths | string; size?: number }) {
   return (
@@ -164,11 +167,25 @@ export function PathInput({ value, onChange, placeholder, expect, id }: {
   else if (kind === 'file') tag = <Chip tone={expect === 'dir' ? 'bad' : 'ok'}>файл</Chip>
   else if (kind === 'dir') tag = <Chip tone="ok">папка</Chip>
 
+  const browse = async () => {
+    if (!desktop) return
+    const start = dirOf(value)
+    const picked = expect === 'dir' ? await desktop.pickFolder(start) : await desktop.pickProject(start)
+    if (picked) onChange(picked)
+  }
+
   return (
-    <div className="path-wrap">
-      <input id={id} className="input mono" value={value} placeholder={placeholder} spellCheck={false}
-        onChange={e => onChange(e.target.value)} />
-      {tag && <span className="path-tag" key={kind}>{tag}</span>}
+    <div className={`path-row${desktop ? ' has-browse' : ''}`}>
+      <div className="path-wrap">
+        <input id={id} className="input mono" value={value} placeholder={placeholder} spellCheck={false}
+          onChange={e => onChange(e.target.value)} />
+        {tag && <span className="path-tag" key={kind}>{tag}</span>}
+      </div>
+      {desktop && (
+        <button type="button" className="btn" onClick={browse} title={expect === 'dir' ? 'Выбрать папку' : 'Выбрать .csproj или .sln'}>
+          <Icon name="folder" />Обзор
+        </button>
+      )}
     </div>
   )
 }

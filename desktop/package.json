@@ -1,0 +1,19 @@
+{
+  "name": "deploydock",
+  "productName": "DeployDock",
+  "version": "2.0.0",
+  "description": "Публикация .NET 9 приложений на IIS",
+  "main": "src/main.js",
+  "author": "Andrew-ded",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "node build/pack.js"
+  },
+  "devDependencies": {
+    "@electron/packager": "^18.4.4",
+    "electron": "33.4.11",
+    "resedit": "^2.0.3"
+  }
+}

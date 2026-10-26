@@ -12,3 +12,7 @@ server/wwwroot/
 *.user
 release-*/
 *.tsbuildinfo
+desktop/build/out/
+desktop/build/backend/
+desktop/data/
+data/

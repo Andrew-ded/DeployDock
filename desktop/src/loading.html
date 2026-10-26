@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>DeployDock</title>
+<style>
+  :root { --bg: #edeff2; --ink: #11151b; --ink-2: #586270; --surface: #fff; --line: #cbd1d8; --go: #ffc21a; --bad: #e5484d; --console: #0f1318; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0c0f13; --ink: #e8ecf0; --ink-2: #9aa5b1; --surface: #151a20; --line: #313a44; --bad: #f2555a; --console: #090c0f; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif; -webkit-app-region: drag; user-select: none; }
+  .wrap { height: 100%; display: grid; place-items: center; padding: 24px; }
+  .box { display: grid; justify-items: center; gap: 18px; text-align: center; max-width: 760px; width: 100%; }
+  .mark { width: 54px; height: 54px; border-radius: 15px; background: var(--ink); display: grid; place-items: center; }
+  .mark i { width: 20px; height: 20px; border-radius: 6px; background: var(--go); display: block; animation: spin 1.4s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes spin { 50% { transform: rotate(90deg) scale(.8); } 100% { transform: rotate(180deg); } }
+  h1 { margin: 0; font-size: 20px; letter-spacing: -.01em; }
+  p { margin: 0; color: var(--ink-2); }
+  .err .mark { background: var(--bad); }
+  .err .mark { position: relative; }
+  .err .mark i { display: none; }
+  .err .mark::before, .err .mark::after { content: ''; position: absolute; left: 50%; top: 50%; width: 24px; height: 5px; border-radius: 3px; background: #fff; }
+  .err .mark::before { transform: translate(-50%, -50%) rotate(45deg); }
+  .err .mark::after { transform: translate(-50%, -50%) rotate(-45deg); }
+  pre { -webkit-app-region: no-drag; user-select: text; text-align: left; width: 100%; max-height: 46vh; overflow: auto; margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--console); color: #c9d2da; font: 12px/1.55 'Cascadia Mono', Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .row { display: flex; gap: 10px; -webkit-app-region: no-drag; }
+  button { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+  button.go { background: var(--go); border-color: var(--go); color: #221a00; }
+  @media (prefers-reduced-motion: reduce) { .mark i { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="box" id="box">
+    <div class="mark"><i></i></div>
+    <h1 id="title">Запускаю DeployDock</h1>
+    <p id="sub">Поднимаю сервер, это пара секунд.</p>
+  </div>
+</div>
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('title')) {
+    const box = document.getElementById('box')
+    box.classList.add('err')
+    document.getElementById('title').textContent = q.get('title')
+    document.getElementById('sub').textContent = 'Что успел записать сервер перед падением:'
+    const pre = document.createElement('pre'); pre.textContent = q.get('details') || ''
+    const row = document.createElement('div'); row.className = 'row'
+    const retry = document.createElement('button'); retry.className = 'go'; retry.textContent = 'Запустить ещё раз'
+    retry.onclick = () => window.deploydock?.retry()
+    const logs = document.createElement('button'); logs.textContent = 'Открыть папку с логами'
+    logs.onclick = () => window.deploydock?.openLogs()
+    row.append(retry, logs); box.append(pre, row)
+  }
+</script>
+</body>
+</html>

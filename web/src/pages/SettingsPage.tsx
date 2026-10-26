@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import type { Settings } from '../types'
-import { useToast } from '../components/ui'
+import { Icon, useToast } from '../components/ui'
+import { desktop } from '../desktop'
 
 const fields: { key: keyof Settings; label: string; hint?: string; min: number; max: number; unit: string }[] = [
   { key: 'backupsToKeep', label: 'Бэкапов на окружение', min: 1, max: 50, unit: 'шт' },
@@ -13,7 +14,7 @@ const fields: { key: keyof Settings; label: string; hint?: string; min: number; 
 export default function SettingsPage() {
   const [s, setS] = useState<Settings | null>(null)
   const [orig, setOrig] = useState('')
-  const [info, setInfo] = useState<{ dataDir: string; version: string } | null>(null)
+  const [info, setInfo] = useState<{ dataDir: string; version: string; portable: boolean } | null>(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -48,10 +49,22 @@ export default function SettingsPage() {
         </div>
       </section>
       {info && (
-        <p className="hint" style={{ marginTop: 16 }}>
-          Версия {info.version}. Данные, бэкапы и логи лежат в <code>{info.dataDir}</code>.
-          База зашифрована ключами, привязанными к твоей учётке Windows: под другим пользователем или на другой машине строки и ключи не расшифруются.
-        </p>
+        <section className="surface pad" style={{ marginTop: 16 }}>
+          <h2>Данные</h2>
+          <div className="row" style={{ alignItems: 'flex-start', flexWrap: 'nowrap' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 6 }}>
+              <code style={{ justifySelf: 'start' }}>{info.dataDir}</code>
+              <span className="hint">
+                {info.portable
+                  ? <>Здесь лежат <code>deploydock.db</code> (приложения, справочник, ключи окружений) и <code>deploydock.key</code>, которым они зашифрованы.
+                    Чтобы перенести всё на другой ПК, скопируй оба файла в папку <code>data</code> рядом с DeployDock.exe. Без <code>.key</code> строки подключения и ключи не расшифруются.</>
+                  : <>Строки подключения и ключи зашифрованы ключом <code>deploydock.key</code> из этой же папки.</>}
+              </span>
+              <span className="hint">Бэкапы для отката и логи запусков тоже здесь, в папках <code>backups</code> и <code>logs</code>. Версия {info.version}.</span>
+            </div>
+            {desktop && <button className="btn" onClick={() => desktop!.openPath(info.dataDir)}><Icon name="folder" />Открыть папку</button>}
+          </div>
+        </section>
       )}
       {dirty && (
         <div className="savebar" role="region" aria-label="Несохранённые изменения">

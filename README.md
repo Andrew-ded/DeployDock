@@ -1,6 +1,6 @@
 # DeployDock
 
-Локальная веб-панель для публикации .NET 9 приложений на IIS. Одна кнопка вместо ручного «`dotnet publish` → перетащить папку → поправить appsettings → проверить, что поднялось».
+Десктоп-приложение для публикации .NET 9 приложений на IIS. Одна кнопка вместо ручного «`dotnet publish` → перетащить папку → поправить appsettings → проверить, что поднялось».
 
 ![Главная](docs/dashboard.png)
 
@@ -22,26 +22,30 @@
 
 ## Установка
 
-Нужен Windows и .NET 9 SDK (он всё равно нужен для сборки публикуемых проектов).
+Нужен Windows и .NET 9 (SDK или ASP.NET Core Runtime; SDK всё равно нужен для сборки публикуемых проектов).
 
-1. Скачай `DeployDock-win-x64.zip` из [Releases](../../releases) и распакуй.
-2. Запусти `DeployDock.exe`. Откроется браузер на `http://localhost:5080`.
-3. Закрыл консольное окно — панель остановлена.
+1. Скачай `DeployDock-2.0.0-win-x64.zip` из [Releases](../../releases) и распакуй куда угодно, например `D:\Tools\DeployDock`.
+2. Запусти `DeployDock.exe`. Откроется обычное окно, без консоли и браузера.
+3. Закрыл окно — всё остановлено, сервер внутри завершается вместе с ним.
 
-Node, интернет и CDN не нужны, фронт и шрифты вшиты в exe. Порт меняется в `appsettings.json` рядом с exe. Слушает только localhost, авторизации нет: рассчитано на одного пользователя на своей машине.
+Внутри окна работает тот же ASP.NET-сервер, Electron просто запускает его скрыто на свободном порту `127.0.0.1` и показывает интерфейс. Наружу ничего не слушает, авторизации нет: рассчитано на одного пользователя на своей машине.
 
-## Где хранятся данные
+## Данные и перенос
 
-`%LOCALAPPDATA%\DeployDock\`:
+Всё лежит в папке `data` рядом с `DeployDock.exe`:
 
 | Что | Где |
 |---|---|
-| База (приложения, справочник, ключи) | `deploydock.db` (SQLite) |
-| Ключи шифрования | `protection-keys\` |
-| Бэкапы для отката | `backups\target-<id>\<дата-время>\` |
-| Логи последних запусков | `logs\` |
+| Приложения, окружения, справочник строк, ключи подписи | `data\deploydock.db` (SQLite, один файл) |
+| Ключ шифрования строк подключения и ключей подписи | `data\deploydock.key` |
+| Бэкапы для отката | `data\backups\` |
+| Логи | `data\logs\` |
 
-Строки подключения и ключи подписи в базе зашифрованы через ASP.NET Data Protection, мастер-ключ закрыт DPAPI текущего пользователя Windows. Под другой учёткой или на другой машине они не расшифруются.
+Перенести на другой ПК или обновить версию: скопируй `deploydock.db` и `deploydock.key` в папку `data` новой копии. Без `.key` строки подключения и ключи подписи не расшифруются, остальное откроется.
+
+Секреты зашифрованы AES-256-GCM ключом из `deploydock.key`. Кто получил папку `data` целиком, тот прочитает и строки подключения, поэтому храни её так же, как хранил бы сами строки.
+
+Переход с 1.x: при первом запуске база и бэкапы из `%LOCALAPPDATA%\DeployDock` подхватятся сами и перешифруются новым ключом. Работает на том же ПК под той же учёткой, потому что старая версия шифровала через DPAPI.
 
 ## Исключения
 
@@ -59,29 +63,33 @@ uploads/*     маска с путём
 ## Разработка
 
 ```
-server/   ASP.NET Core 9, minimal API, EF Core + SQLite, SignalR
-web/      React 19 + Vite + TypeScript
+server/    ASP.NET Core 9, minimal API, EF Core + SQLite, SignalR
+web/       React 19 + Vite + TypeScript
+desktop/   Electron-оболочка: окно, скрытый запуск сервера, нативные диалоги выбора папок
 ```
 
 ```bash
 # фронт в wwwroot сервера
 cd web && npm ci && npm run build
 
-# сервер
+# сервер отдельно (откроется в браузере)
 cd server && dotnet run
 
-# фронт с hot reload (проксирует API на :5080)
-cd web && npm run dev
+# десктоп в режиме разработки (берёт server/bin/Release/net9.0/DeployDock.dll)
+cd server && dotnet build -c Release && cp -r wwwroot bin/Release/net9.0/
+cd desktop && npm ci && npm start
 
 # демо на моках, без сервера: один HTML-файл в web/dist-mock
 cd web && npm run build:mock
 
-# exe под Windows
+# сборка под Windows (можно на Linux, Wine не нужен)
 cd server && dotnet publish -c Release -r win-x64 --self-contained false \
-  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ../out/DeployDock
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+  -p:AssemblyName=DeployDock.Server -o ../desktop/build/backend
+cd desktop && npm run dist     # → desktop/build/out/DeployDock-win32-x64
 ```
 
-Схема базы создаётся через `EnsureCreated`, миграций нет. Если меняешь сущности — удали `deploydock.db` или добавь миграции.
+Схема базы создаётся через `EnsureCreated`, миграций нет. Если меняешь сущности — добавь миграции, иначе старые базы не откроются.
 
 ## Лицензия
 

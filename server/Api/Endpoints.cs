@@ -86,7 +86,7 @@ public static class Endpoints
                     (b, t) => new { b.ConnectionStringId, Label = t.App!.Name + " / " + t.Name })
                 .ToListAsync();
             return list.Select(c => new ConnectionDto(c.Id, c.Name, c.Description,
-                SecretProtector.Mask(SafeUnprotect(sp, c.ProtectedValue)),
+                MaskSafe(sp, c.ProtectedValue),
                 usage.Where(u => u.ConnectionStringId == c.Id).Select(u => u.Label).Distinct().ToList()));
         });
 
@@ -134,7 +134,7 @@ public static class Endpoints
 
         api.MapGet("/targets/{id:int}/keys", async (int id, AppDb db, SecretProtector sp) =>
             (await db.SigningKeys.Where(k => k.DeployTargetId == id).OrderBy(k => k.JsonPath).ToListAsync())
-            .Select(k => new KeyDto(k.Id, k.JsonPath, SecretProtector.Mask(SafeUnprotect(sp, k.ProtectedValue)), k.CreatedAt)));
+            .Select(k => new KeyDto(k.Id, k.JsonPath, MaskSafe(sp, k.ProtectedValue), k.CreatedAt)));
 
         api.MapGet("/keys/{id:int}/value", async (int id, AppDb db, SecretProtector sp) =>
             await db.SigningKeys.FindAsync(id) is { } k
@@ -220,7 +220,7 @@ public static class Endpoints
                 : File.Exists(p) ? "file"
                 : Directory.Exists(p) ? "dir" : "missing")));
 
-        api.MapGet("/info", () => new { dataDir = AppPaths.Root, version = typeof(Endpoints).Assembly.GetName().Version?.ToString(3) });
+        api.MapGet("/info", () => new { dataDir = AppPaths.Root, portable = AppPaths.IsPortable, version = typeof(Endpoints).Assembly.GetName().Version?.ToString(3) });
     }
 
     static async Task<IResult> StartSafe(Func<Task<RunState>> start)
@@ -231,10 +231,18 @@ public static class Endpoints
         catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
     }
 
+    const string Unreadable = "(не расшифровывается: нет подходящего deploydock.key)";
+
+    static string MaskSafe(SecretProtector sp, string cipher)
+    {
+        try { return SecretProtector.Mask(sp.Unprotect(cipher)); }
+        catch { return Unreadable; }
+    }
+
     static string SafeUnprotect(SecretProtector sp, string cipher)
     {
         try { return sp.Unprotect(cipher); }
-        catch { return "(не расшифровывается — ключи защиты потеряны)"; }
+        catch { return Unreadable; }
     }
 
     static IQueryable<AppProject> LoadApps(AppDb db) =>

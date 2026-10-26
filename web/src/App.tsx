@@ -1,5 +1,6 @@
 import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { isMock } from './api'
+import { desktop } from './desktop'
 import { useLive } from './live'
 import Dashboard from './pages/Dashboard'
 import AppEditor from './pages/AppEditor'
@@ -32,7 +33,9 @@ export default function App() {
           <span className="spacer" />
           {isMock
             ? <Chip tone="warn" title="Данные выдуманы и живут только в этой вкладке">демо на моках</Chip>
-            : <Chip tone={connected ? 'ok' : 'warn'}>{connected ? 'на связи' : 'переподключаюсь'}</Chip>}
+            : desktop
+              ? (!connected && <Chip tone="warn">переподключаюсь</Chip>)
+              : <Chip tone={connected ? 'ok' : 'warn'}>{connected ? 'на связи' : 'переподключаюсь'}</Chip>}
         </div>
       </header>
       <main className="main">

@@ -60,7 +60,7 @@ const realApi = {
 
   settings: () => req<Settings>('GET', '/api/settings'),
   saveSettings: (s: Settings) => req<Settings>('PUT', '/api/settings', s),
-  info: () => req<{ dataDir: string; version: string }>('GET', '/api/info'),
+  info: () => req<{ dataDir: string; version: string; portable: boolean }>('GET', '/api/info'),
 
   checkPaths: (paths: string[]) => req<{ path: string; kind: string }[]>('POST', '/api/fs/check', { paths }),
 }

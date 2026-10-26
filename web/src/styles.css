@@ -464,3 +464,19 @@ a.chip:hover { background: color-mix(in srgb, var(--c, var(--idle)) 22%, transpa
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* ───── поле пути с кнопкой «Обзор» ───── */
+.path-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.path-row.has-browse { grid-template-columns: minmax(0, 1fr) auto; }
+
+/* ───── десктоп: своя панель вместо системной рамки ───── */
+.is-desktop .topbar {
+  -webkit-app-region: drag; user-select: none;
+  min-height: 60px; padding-block: 11px;
+  /* справа Windows рисует кнопки окна поверх — не залезаем под них */
+  padding-right: max(150px, env(titlebar-area-x, 0px));
+}
+.is-desktop .topbar a, .is-desktop .topbar button, .is-desktop .topbar .seg, .is-desktop .topbar .chip { -webkit-app-region: no-drag; }
+.is-desktop .topbar-in { max-width: none; }
+.is-desktop .main { padding-top: 8px; }
+.is-desktop body { overscroll-behavior: none; }
