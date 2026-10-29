@@ -1,5 +1,5 @@
 # Релиз без локальной сборки: Actions → Release → Run workflow.
-# Версия берётся из desktop/package.json, текст — из .github/release-notes/<версия>.md.
+# Версия берётся из desktop/package.json, текст — из .github/changelog/<версия>.md.
 name: Release
 
 on:
@@ -27,7 +27,7 @@ jobs:
         run: |
           $v = (Get-Content desktop/package.json -Raw | ConvertFrom-Json).version
           "version=$v" >> $env:GITHUB_OUTPUT
-          if (-not (Test-Path ".github/release-notes/$v.md")) { throw "Нет .github/release-notes/$v.md" }
+          if (-not (Test-Path ".github/changelog/$v.md")) { throw "Нет .github/changelog/$v.md" }
 
       - name: Релиз уже есть?
         env:
@@ -75,4 +75,4 @@ jobs:
           "${{ steps.pack.outputs.zip }}" SHA256SUMS.txt
           --target "${{ github.sha }}"
           --title "DeployDock ${{ steps.ver.outputs.version }}"
-          --notes-file ".github/release-notes/${{ steps.ver.outputs.version }}.md"
+          --notes-file ".github/changelog/${{ steps.ver.outputs.version }}.md"
