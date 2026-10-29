@@ -13,6 +13,20 @@ export const desktop: DesktopBridge | undefined = (window as unknown as { deploy
 
 if (desktop) document.documentElement.classList.add('is-desktop')
 
+/**
+ * Планшет — терминал: плитки сайтов и кнопка публикации, без настроек и строк подключения.
+ * Это любой не-десктопный клиент на Android/iPad; для проверки в обычном браузере есть ?view=tablet и ?view=full.
+ */
+function detectTablet() {
+  if (desktop) return false
+  const v = new URLSearchParams(location.search).get('view')
+  if (v === 'tablet') return true
+  if (v === 'full') return false
+  return /Android|iPad/i.test(navigator.userAgent)
+}
+export const isTablet = detectTablet()
+if (isTablet) document.documentElement.classList.add('is-tablet')
+
 /** Стартовая папка для диалога: сам путь, если это папка, или папка файла. */
 export function dirOf(p: string) {
   const t = p.trim()

@@ -1,19 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { statusText, statusTone, when, type Tone } from '../format'
+import { envState, statusText, statusTone, when, type Tone } from '../format'
 import { useLiveEvent } from '../live'
 import type { DashboardApp, DashboardTarget } from '../types'
 import { Chip, Confirm, Dot, Icon, useToast } from '../components/ui'
 import { RollbackDialog } from '../components/RollbackDialog'
-
-function envState(t: DashboardTarget): { tone: Tone; label: string } {
-  if (t.busy) return { tone: 'busy', label: t.lastRun?.kind === 'Rollback' ? 'Откатывается' : 'Публикуется' }
-  if (!t.healthUrl) return { tone: 'idle', label: 'Без health' }
-  if (t.lastHealthOk === true) return { tone: 'ok', label: 'Живо' }
-  if (t.lastHealthOk === false) return { tone: 'bad', label: 'Не отвечает' }
-  return { tone: 'idle', label: 'Не проверяли' }
-}
 
 // Выбранное приложение переживает уход на экран запуска и возврат
 let rememberedApp: number | null = null

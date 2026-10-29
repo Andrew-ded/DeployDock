@@ -480,3 +480,42 @@ a.chip:hover { background: color-mix(in srgb, var(--c, var(--idle)) 22%, transpa
 .is-desktop .topbar-in { max-width: none; }
 .is-desktop .main { padding-top: 8px; }
 .is-desktop body { overscroll-behavior: none; }
+
+/* ───── планшет: терминал с плитками ───── */
+.is-tablet body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.tablet {
+  min-height: 100vh; display: flex; flex-direction: column; gap: 18px;
+  padding: max(20px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px));
+}
+.tablet-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tablet-note { margin: 40px auto; font-size: 18px; text-align: center; max-width: 40ch; }
+.tablet-plate {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-radius: var(--r-md);
+  font-size: 20px; font-weight: 650; letter-spacing: -.01em; color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, var(--surface)); border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+  animation: toast-in .32s var(--ease);
+}
+.tablet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; align-content: start; }
+.tablet-tile {
+  position: relative; overflow: hidden; display: grid; gap: 6px; align-content: space-between; text-align: left;
+  min-height: 168px; padding: 20px 22px; border-radius: var(--r-lg); cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink); box-shadow: var(--shadow);
+  transition: transform .12s var(--ease), opacity .2s;
+}
+.tablet-tile::before { content: ''; position: absolute; inset: 0 0 auto; height: 6px; background: var(--c); }
+.tablet-tile:active:not(:disabled) { transform: scale(.97); }
+.tablet-tile:disabled { cursor: default; opacity: .55; }
+.tablet-tile.is-busy:disabled { opacity: 1; border-color: var(--busy); }
+.tablet-tile-env { font-size: 15px; font-weight: 650; color: var(--ink-2); }
+.tablet-tile-name { font-size: 26px; font-weight: 700; letter-spacing: -.025em; line-height: 1.15; overflow-wrap: anywhere; }
+.tablet-tile-state { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--c); }
+.tablet-tile-go { position: absolute; right: 18px; bottom: 18px; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--go); color: var(--go-ink); }
+.is-tablet .modal { width: min(560px, 100%); padding: 28px 30px; }
+.is-tablet .modal h2 { font-size: 24px; }
+.is-tablet .modal .hint { font-size: 18px !important; }
+.is-tablet .modal-actions { gap: 12px; margin-top: 28px; }
+.is-tablet .modal-actions .btn { flex: 1; padding: 16px 20px; font-size: 18px; border-radius: var(--r-md); }
+.is-tablet .toasts { left: 24px; right: 24px; max-width: none; }
+.is-tablet .toast { font-size: 17px; padding: 16px 20px; }
+.tablet-tile-name, .tablet-tile-state { padding-right: 52px; }
+.tablet-tile.is-busy .tablet-tile-go { display: none; }

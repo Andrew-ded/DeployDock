@@ -1,4 +1,4 @@
-import type { RunStatus } from './types'
+import type { DashboardTarget, RunStatus } from './types'
 
 export const statusText: Record<RunStatus, string> = {
   Running: 'идёт',
@@ -18,6 +18,15 @@ export const statusTone: Record<RunStatus, Tone> = {
   Failed: 'bad',
   HealthFailed: 'bad',
   Cancelled: 'warn',
+}
+
+/** Состояние окружения для плиток и дашборда. */
+export function envState(t: DashboardTarget): { tone: Tone; label: string } {
+  if (t.busy) return { tone: 'busy', label: t.lastRun?.kind === 'Rollback' ? 'Откатывается' : 'Публикуется' }
+  if (!t.healthUrl) return { tone: 'idle', label: 'Без health' }
+  if (t.lastHealthOk === true) return { tone: 'ok', label: 'Живо' }
+  if (t.lastHealthOk === false) return { tone: 'bad', label: 'Не отвечает' }
+  return { tone: 'idle', label: 'Не проверяли' }
 }
 
 export function when(iso: string | null | undefined) {

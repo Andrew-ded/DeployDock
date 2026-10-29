@@ -66,6 +66,19 @@ export default function SettingsPage() {
           </div>
         </section>
       )}
+      {desktop && (
+        <section className="surface pad" style={{ marginTop: 16 }}>
+          <h2>Планшет</h2>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span className="hint">
+              Планшет по кабелю работает как терминал: плитки приложений и кнопка публикации, установка идёт здесь.
+              Включи отладку по USB и один раз за подключение выполни на этом ПК:
+            </span>
+            <code style={{ justifySelf: 'start' }}>adb reverse tcp:{location.port} tcp:{location.port}</code>
+            <span className="hint">Потом открой в Chrome на планшете <code>http://localhost:{location.port}</code>.</span>
+          </div>
+        </section>
+      )}
       {dirty && (
         <div className="savebar" role="region" aria-label="Несохранённые изменения">
           <span style={{ fontSize: 14 }}>Есть несохранённые изменения</span>
