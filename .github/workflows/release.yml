@@ -1,0 +1,78 @@
+# Релиз без локальной сборки: Actions → Release → Run workflow.
+# Версия берётся из desktop/package.json, текст — из .github/release-notes/<версия>.md.
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Версия
+        id: ver
+        run: |
+          $v = (Get-Content desktop/package.json -Raw | ConvertFrom-Json).version
+          "version=$v" >> $env:GITHUB_OUTPUT
+          if (-not (Test-Path ".github/release-notes/$v.md")) { throw "Нет .github/release-notes/$v.md" }
+
+      - name: Релиз уже есть?
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v${{ steps.ver.outputs.version }}" 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "Релиз v${{ steps.ver.outputs.version }} уже существует" }
+          $global:LASTEXITCODE = 0
+
+      - name: Фронт
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Бэкенд
+        working-directory: server
+        run: >
+          dotnet publish -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:AssemblyName=DeployDock.Server -o ../desktop/build/backend
+
+      - name: Десктоп
+        working-directory: desktop
+        run: |
+          npm ci
+          npm run dist
+
+      - name: Архив
+        id: pack
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          $zip = "DeployDock-$v-win-x64.zip"
+          Rename-Item desktop/build/out/DeployDock-win32-x64 DeployDock
+          Compress-Archive -Path desktop/build/out/DeployDock -DestinationPath $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLower()
+          [IO.File]::WriteAllText("SHA256SUMS.txt", "$hash  $zip`n")
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+
+      - name: Релиз
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "v${{ steps.ver.outputs.version }}"
+          "${{ steps.pack.outputs.zip }}" SHA256SUMS.txt
+          --target "${{ github.sha }}"
+          --title "DeployDock ${{ steps.ver.outputs.version }}"
+          --notes-file ".github/release-notes/${{ steps.ver.outputs.version }}.md"
