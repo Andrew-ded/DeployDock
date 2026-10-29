@@ -1,7 +1,7 @@
 {
   "name": "deploydock",
   "productName": "DeployDock",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Публикация .NET 9 приложений на IIS",
   "main": "src/main.js",
   "author": "Andrew-ded",

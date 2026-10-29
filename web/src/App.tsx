@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { isMock } from './api'
 import { desktop } from './desktop'
-import { useLive } from './live'
+import { useLive, useLiveEvent } from './live'
+import type { Run } from './types'
 import Dashboard from './pages/Dashboard'
 import AppEditor from './pages/AppEditor'
 import Connections from './pages/Connections'
@@ -22,6 +24,16 @@ export default function App() {
   const { connected } = useLive()
   const loc = useLocation()
   const nav = useNavigate()
+  const seenRuns = useRef(new Set<string>())
+
+  // Запуск, начатый с другого клиента (планшета), сам открывается здесь. Только на первое событие запуска,
+  // иначе каждая смена этапа выдёргивала бы с любой другой страницы.
+  useLiveEvent('runUpdated', (run: Run) => {
+    if (seenRuns.current.has(run.id)) return
+    seenRuns.current.add(run.id)
+    if (run.status === 'Running' && !loc.pathname.startsWith(`/runs/${run.id}`)) nav(`/runs/${run.id}`)
+  })
+
   const active = sections.find(s => s.value !== '/' && loc.pathname.startsWith(s.value))?.value ?? '/'
 
   return (

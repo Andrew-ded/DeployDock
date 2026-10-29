@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import './styles.css'
 import App from './App'
+import Tablet from './pages/Tablet'
+import { isTablet } from './desktop'
 import { isMock } from './api'
 import { LiveProvider } from './live'
 import { ToastProvider } from './components/ui'
@@ -15,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
     <Router>
       <LiveProvider>
         <ToastProvider>
-          <App />
+          {isTablet ? <Tablet /> : <App />}
         </ToastProvider>
       </LiveProvider>
     </Router>

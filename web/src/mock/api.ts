@@ -641,7 +641,7 @@ export const mockApi = {
     }
     return net(db.settings, 200)
   },
-  info: () => net({ dataDir: 'D:\\Tools\\DeployDock\\data', version: '2.0.0-demo', portable: true }),
+  info: () => net({ dataDir: 'D:\\Tools\\DeployDock\\data', version: '2.1.0-demo', portable: true }),
 
   checkPaths: (paths: string[]) => net(paths.map(p => ({
     path: p,

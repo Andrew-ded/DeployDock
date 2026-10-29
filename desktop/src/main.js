@@ -7,6 +7,8 @@ const path = require('node:path')
 
 const isWin = process.platform === 'win32'
 const TITLEBAR_H = 60
+// Фиксированный порт: планшет ходит на localhost:50804 через `adb reverse tcp:50804 tcp:50804`
+const BACKEND_PORT = 50804
 
 // ───────────── пути ─────────────
 
@@ -66,6 +68,21 @@ function freePort() {
       srv.close(() => resolve(port))
     })
   })
+}
+
+function portFree(port) {
+  return new Promise(resolve => {
+    const srv = net.createServer()
+    srv.unref()
+    srv.on('error', () => resolve(false))
+    srv.listen(port, '127.0.0.1', () => srv.close(() => resolve(true)))
+  })
+}
+
+async function backendPort() {
+  if (await portFree(BACKEND_PORT)) return BACKEND_PORT
+  log(`порт ${BACKEND_PORT} занят, беру свободный (планшет в этом запуске не подключится)`)
+  return freePort()
 }
 
 // ───────────── состояние ─────────────
@@ -185,7 +202,7 @@ function showError(title, details) {
 // ───────────── бэкенд ─────────────
 
 async function startBackend() {
-  const port = await freePort()
+  const port = await backendPort()
   const { cmd, args, cwd } = backendCommand()
   const full = [...args, '--urls', `http://127.0.0.1:${port}`, '--data-dir', data.dir,
     '--parent-pid', String(process.pid), '--no-browser']
